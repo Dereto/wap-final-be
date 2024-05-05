@@ -59,6 +59,13 @@ For detailed documentation on each endpoint, refer to [API Documentation](localh
 The backend service uses a PostgreSQL database, which is managed automatically by Docker Compose. Database initialization are handled automatically on startup.
 You can access database at port 5432.
 
+## Testing
+
+There are currently three user in the database, the username/password are as follows: admin/admin, Alice/123, and Bob/123.\
+You can use these three to test login function, or create a new one by yourself.\
+the login form should be in JSON format: {username: "username", password: "password"}. After you posted, you should receive a
+automatically set a cookie that allows you to view his/her data.
+
 ## Troubleshooting
 
 If you encounter any issues while running the backend service, try the following:
