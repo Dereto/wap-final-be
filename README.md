@@ -52,7 +52,7 @@ Once the backend services are up and running, you can access the API endpoints a
 - **POST /user**: Create new user.
 - **PUT /user/{id}**: Updates user password, don't use it for now.
 
-For detailed documentation on each endpoint, refer to [API Documentation](localhost:8000/docs) (please start service beforehand).
+For detailed documentation on each endpoint, refer to [API Documentation](localhost:8000/docs) (localhost:8000/docs) (please start service beforehand).
 
 ## Database Setup
 
