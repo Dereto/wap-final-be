@@ -72,4 +72,6 @@ If you encounter any issues while running the backend service, try the following
 
 - Make sure Docker and Docker Compose are installed correctly.
 - Check the logs for any error messages.
+- Make sure you have .env configured.
 - Ensure that the required ports (e.g., 8000 for the fastapi) are not being used by other services.
+- `docker-compose up --build` if you failed to start service last time.
