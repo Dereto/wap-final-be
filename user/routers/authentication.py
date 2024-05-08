@@ -19,16 +19,16 @@ async def homepage(request: Request):
 async def login(username: str = Form(...),
                 password: str = Form(...),
                 db: _orm.Session = _fastapi.Depends(_services.get_db)):
-    results = await db.execute(_sql.select(_models.User).where(_models.User.Username == username))
+    results = await db.execute(_sql.select(_models.User).where(_models.User.username == username))
     user = results.scalars().first()
     if user is None:
         raise _fastapi.HTTPException(status_code=404, detail="User does not exist")
-    if not Hash.verify(user.Password, password):
+    if not Hash.verify(user.password, password):
         raise _fastapi.HTTPException(status_code=404, detail="Password incorrect")
 
     access_token = _token.create_access_token({"id": user.id})
-    response = Response("successes", status_code=200)
-    response.set_cookie(key="access_token", value=access_token)
+    headers = {"access-token": access_token}
+    response = Response("successes", status_code=200, headers=headers)
 
     return response
 

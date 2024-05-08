@@ -61,9 +61,9 @@ async def update_user(request: _fastapi.Request,
     method = form_data.get("_method")
     if method and method == "PUT":
         if current_user is None:
-            raise _fastapi.HTTPException(status_code=401, detail="unauthorized ")
+            raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
         if current_user.id != user_id:
-            raise _fastapi.HTTPException(status_code=404, detail="forbidden ")
+            raise _fastapi.HTTPException(status_code=404, detail="forbidden")
         user = await _services.get_user(user_id=user_id, db=db)
         if user is None:
             raise _fastapi.HTTPException(status_code=404, detail="User does not exist")
