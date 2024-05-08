@@ -1,11 +1,11 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel as _BaseModel
 
 
-class _BaseUser(BaseModel):
-    Username: str
-    Password: str
+class _BaseUser(_BaseModel):
+    username: str
+    password: str
 
     class Config:
         arbitrary_types_allowed = True
@@ -13,7 +13,7 @@ class _BaseUser(BaseModel):
 
 
 class User(_BaseUser):
-    Point: Optional[int] = None
+    point: Optional[int] = None
     id: int
 
     class Config:
@@ -26,26 +26,26 @@ class CreateUser(_BaseUser):
 
 class ShowUser(_BaseUser):
     id: int
-    Point: Optional[int] = None
+    point: Optional[int] = None
 
     class Config:
         orm_mode = True
 
 
-class UpdateForm(BaseModel):
+class UpdateForm(_BaseModel):
     old_password: str
     new_password: Optional[str] = None
 
 
-class Login(BaseModel):
+class Login(_BaseModel):
     username: str
     password: str
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+# class Token(BaseModel):
+#     access_token: str
+#     token_type: str
 
 
-class TokenData(BaseModel):
+class TokenData(_BaseModel):
     id: Optional[int] = None
