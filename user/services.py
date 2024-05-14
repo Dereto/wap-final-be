@@ -47,6 +47,8 @@ async def get_show_user(user_id: int, db: AsyncSession) -> _schemas.ShowUser:
     # noinspection PyTypeChecker
     results = await db.execute(_sql.select(_models.User).where(_models.User.id == user_id))
     user = results.scalars().first()
+    if user is None:
+        raise _fastapi.HTTPException(status_code=404, detail='User not found')
     return _schemas.ShowUser.from_orm(user)
 
 
@@ -67,7 +69,55 @@ async def update_user(update_form: _schemas.UpdateForm, user: _models.User, db: 
         raise _fastapi.HTTPException(status_code=404, detail="Password incorrect")
     if update_form.new_password != "":
         user.Password = Hash.bcrypt(update_form.new_password)
+
     await db.commit()
     await db.refresh(user)
 
-    return _schemas.ShowUser.model_validate(user)
+    return _schemas.ShowUser.from_orm(user)
+
+
+async def create_book(book: _schemas.CreateBook, db: AsyncSession) -> _schemas.ShowBook:
+    book = _models.Book(**book.dict())
+    db.add(book)
+    await db.commit()
+    await db.refresh(book)
+    return _schemas.ShowBook.from_orm(book)
+
+
+async def get_all_books(db: AsyncSession) -> List[_schemas.ShowBook]:
+    q = select(_models.Book)
+    result = await db.execute(q)
+    books = [_schemas.ShowBook.from_orm(row) for row in result.scalars()]
+    return books
+
+
+async def get_show_book(book_id: int, db: AsyncSession) -> _schemas.ShowBook:
+    # noinspection PyTypeChecker
+    results = await db.execute(_sql.select(_models.Book).where(_models.Book.id == book_id))
+    book = results.scalars().first()
+    if book is None:
+        raise _fastapi.HTTPException(status_code=404, detail='Book not found')
+    return _schemas.ShowBook.from_orm(book)
+
+
+async def get_book(book_id: int, db: AsyncSession) -> _models.Book:
+    # noinspection PyTypeChecker
+    results = await db.execute(_sql.select(_models.Book).where(_models.Book.id == book_id))
+    book = results.scalars().first()
+    return book
+
+
+async def delete_book(book: _models.Book, db: AsyncSession):
+    await db.delete(book)
+    await db.commit()
+
+
+async def update_book(update_form: _schemas.UpdateBook, book: _models.Book, db: AsyncSession) -> _schemas.ShowBook:
+    for field, value in update_form.dict().items():
+        if value is not None:
+            setattr(book, field, value)
+
+    await db.commit()
+    await db.refresh(book)
+
+    return _schemas.ShowBook.from_orm(book)
