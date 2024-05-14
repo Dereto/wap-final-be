@@ -10,14 +10,12 @@ class _BaseUser(_BaseModel):
     class Config:
         arbitrary_types_allowed = True
         from_attributes = True
+        orm_mode = True
 
 
 class User(_BaseUser):
     point: Optional[int] = None
     id: int
-
-    class Config:
-        orm_mode = True
 
 
 class CreateUser(_BaseUser):
@@ -53,6 +51,7 @@ class _BaseBook(_BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        from_attributes = True
         orm_mode = True
 
 
