@@ -42,10 +42,28 @@ class Login(_BaseModel):
     password: str
 
 
-# class Token(BaseModel):
-#     access_token: str
-#     token_type: str
-
-
 class TokenData(_BaseModel):
     id: Optional[int] = None
+
+
+class _BaseBook(_BaseModel):
+    title: Optional[str] = None
+    author: Optional[str] = None
+    description: Optional[str] = None
+
+    class Config:
+        arbitrary_types_allowed = True
+        orm_mode = True
+
+
+class ShowBook(_BaseBook):
+    id: int
+    total_pages: int
+
+
+class CreateBook(_BaseBook):
+    pass
+
+
+class UpdateBook(_BaseBook):
+    pass
