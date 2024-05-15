@@ -1,13 +1,13 @@
 from typing import List
 
 import fastapi as _fastapi
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas as _schemas, services as _services
 
 router = APIRouter(
-    prefix="/books",
+    prefix="/book",
     default_response_class=_fastapi.responses.JSONResponse,
     tags=['Books']
 )
@@ -52,3 +52,10 @@ async def update_book(update_form: _schemas.UpdateBook,
         raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
     await _services.update_book(update_form=update_form, book=book, db=db)
     return "Successfully updated the book"
+
+
+@router.post("/{book_id}/page/{page_number}}")
+async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(...)):
+    filename = f"{book_id}_{page_number}.jpg"
+    response = await _services.upload_image(filename=filename, file=file)
+    return {"filename": file.filename, "response": response}
