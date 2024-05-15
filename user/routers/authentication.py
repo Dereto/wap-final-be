@@ -27,6 +27,6 @@ async def login(username: str = Form(...),
         raise _fastapi.HTTPException(status_code=404, detail="Password incorrect")
 
     access_token = _token.create_access_token({"id": user.id})
-    data = {"token": access_token, "id": user.id}
+    data = {"token": access_token, "user_id": user.id}
 
     return data
