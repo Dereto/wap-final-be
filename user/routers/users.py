@@ -60,7 +60,7 @@ async def update_user(form: _schemas.UpdateForm,
     if current_user is None:
         raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
     if current_user.id != user_id:
-        raise _fastapi.HTTPException(status_code=404, detail="forbidden")
+        raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     user = await _services.get_user(user_id=user_id, db=db)
     if user is None:
         raise _fastapi.HTTPException(status_code=404, detail="User does not exist")

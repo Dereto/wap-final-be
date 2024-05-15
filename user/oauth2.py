@@ -1,6 +1,5 @@
 from fastapi import HTTPException, status
-from fastapi import Request, Header
-from typing import Annotated
+from fastapi import Header
 
 from . import tokens as _token, schemas as _schemas
 
