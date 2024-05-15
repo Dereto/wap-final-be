@@ -12,7 +12,7 @@ router = APIRouter(tags=['Authentication'],
 
 @router.get("/")
 async def homepage(request: Request):
-    return "hello from backend."
+    return {"message": "hello from fastapi."}
 
 
 @router.post('/login')
@@ -27,15 +27,6 @@ async def login(username: str = Form(...),
         raise _fastapi.HTTPException(status_code=404, detail="Password incorrect")
 
     access_token = _token.create_access_token({"id": user.id})
-    headers = {"access-token": access_token}
-    response = Response("successes", status_code=200, headers=headers)
+    data = {"token": access_token, "id": user.id}
 
-    return response
-
-
-@router.post('/logout')
-async def logout():
-    response = Response("successes", status_code=200)
-    response.set_cookie(key="access_token", value='')
-
-    return response
+    return data
