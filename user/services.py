@@ -129,8 +129,7 @@ async def update_book(update_form: _schemas.UpdateBook, book: _models.Book, db: 
 async def get_book_pages(book_id: int, db: AsyncSession) -> List[_schemas.ShowPage]:
     q = select(_models.Page).filter(_models.Page.book_id == book_id)
     result = await db.execute(q)
-    pages = [_schemas.ShowPage(book_id=row.book_id, page_number=row.page_number, url=f"http://{fs_base}/{row.uuid}.jpg")
-             for row in result.scalars()]
+    pages = [_schemas.ShowPage.from_orm(row) for row in result.scalars()]
     return pages
 
 
@@ -139,11 +138,7 @@ async def create_page(page: _schemas.CreatePage, db: AsyncSession) -> _schemas.S
     db.add(page)
     await db.commit()
     await db.refresh(page)
-    page = _schemas.ShowPage(
-        book_id=page.book_id,
-        page_number=page.page_number,
-        url=f"http://{fs_base}/{page.uuid}.jpg"
-    )
+    page = _schemas.ShowPage.from_orm(page)
     return page
 
 

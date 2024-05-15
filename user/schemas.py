@@ -82,4 +82,4 @@ class CreatePage(_BasePage):
 
 
 class ShowPage(_BasePage):
-    url: AnyUrl
+    uuid: UUID4
