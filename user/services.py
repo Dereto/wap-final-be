@@ -1,12 +1,15 @@
 from typing import TYPE_CHECKING, List
+import requests
 
 import fastapi as _fastapi
 import sqlalchemy as _sql
+from fastapi import UploadFile, File
 from sqlalchemy.sql import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import database as _database, models as _models, schemas as _schemas
 from .hashing import Hash
+from config import fs_base
 
 if TYPE_CHECKING:
     pass
@@ -121,3 +124,36 @@ async def update_book(update_form: _schemas.UpdateBook, book: _models.Book, db: 
     await db.refresh(book)
 
     return _schemas.ShowBook.from_orm(book)
+
+
+async def get_book_pages(book_id: int, db: AsyncSession) -> List[_schemas.ShowPage]:
+    q = select(_models.Page).filter(_models.Page.book_id == book_id)
+    result = await db.execute(q)
+    pages = [_schemas.ShowPage(book_id=row.book_id, page_number=row.page_number, url=f"http://{fs_base}/{row.uuid}.jpg")
+             for row in result.scalars()]
+    return pages
+
+
+async def create_page(page: _schemas.CreatePage, db: AsyncSession) -> _schemas.ShowPage:
+    page = _models.Page(**page.dict())
+    db.add(page)
+    await db.commit()
+    await db.refresh(page)
+    page = _schemas.ShowPage(
+        book_id=page.book_id,
+        page_number=page.page_number,
+        url=f"http://{fs_base}/{page.uuid}.jpg"
+    )
+    return page
+
+
+async def upload_image(filename: str, file: UploadFile = File(...)):
+    url = f"http://{fs_base}/upload"
+
+    files = {"image": (filename, file.file)}
+    response = requests.post(url, files=files)
+
+    if response.status_code == 200:
+        return {"message": "File uploaded successfully."}
+    else:
+        return {"error": "Failed to upload file to server."}

@@ -1,6 +1,5 @@
+from pydantic import BaseModel as _BaseModel, UUID4, AnyUrl
 from typing import Optional
-
-from pydantic import BaseModel as _BaseModel
 
 
 class _BaseUser(_BaseModel):
@@ -66,3 +65,21 @@ class CreateBook(_BaseBook):
 
 class UpdateBook(_BaseBook):
     pass
+
+
+class _BasePage(_BaseModel):
+    book_id: int
+    page_number: int
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
+        orm_mode = True
+
+
+class CreatePage(_BasePage):
+    uuid: UUID4
+
+
+class ShowPage(_BasePage):
+    url: AnyUrl

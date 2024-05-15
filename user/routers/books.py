@@ -1,13 +1,14 @@
 from typing import List
 
 import fastapi as _fastapi
-from fastapi import APIRouter
+import uuid
+from fastapi import APIRouter, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas as _schemas, services as _services
 
 router = APIRouter(
-    prefix="/books",
+    prefix="/book",
     default_response_class=_fastapi.responses.JSONResponse,
     tags=['Books']
 )
@@ -52,3 +53,21 @@ async def update_book(update_form: _schemas.UpdateBook,
         raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
     await _services.update_book(update_form=update_form, book=book, db=db)
     return "Successfully updated the book"
+
+
+@router.post("/{book_id}/upload", response_model=_schemas.ShowPage)
+async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(...),
+                        db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    page_uuid = uuid.uuid4()
+    filename = f"{page_uuid}.jpg"
+    response = await _services.upload_image(filename=filename, file=file)  # do some check later
+    page = _schemas.CreatePage(page_number=page_number, book_id=book_id, uuid=page_uuid)
+    page = await _services.create_page(page, db=db)
+    return page
+
+
+@router.get("/{book_id}/pages", response_model=List[_schemas.ShowPage])
+async def get_book_pages(book_id: int,
+                        db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    pages = await _services.get_book_pages(book_id=book_id, db=db)
+    return pages

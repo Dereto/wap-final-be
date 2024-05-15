@@ -19,7 +19,7 @@ class DBConfig:
 
 
 db_config = DBConfig()
-
+fs_base = os.getenv("FS_HOST") + ":" + os.getenv("FS_PORT")
 
 @lru_cache()
 def get_app_root():
