@@ -39,6 +39,10 @@ class ShowUser(_BaseUser):
 class UpdateForm(_BaseModel):
     old_password: str
     new_password: Optional[str] = None
+    username: Optional[str] = None
+    gender: Optional[str] = None
+    birthday: Optional[date] = None
+    self_description: Optional[str] = None
 
 
 class Login(_BaseModel):
