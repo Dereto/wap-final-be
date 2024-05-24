@@ -4,8 +4,10 @@ import requests
 import fastapi as _fastapi
 import sqlalchemy as _sql
 from fastapi import UploadFile, File
+from sqlalchemy import text
 from sqlalchemy.sql import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from requests import Response
 
 from . import database as _database, models as _models, schemas as _schemas
 from .hashing import Hash
@@ -19,7 +21,7 @@ def _add_tables():
     return _database.Base.metadata.create_all(bind=_database.engine)
 
 
-async def get_db():
+async def get_db() -> AsyncSession:
     async with _database.engine.begin() as conn:
         await conn.run_sync(_database.Base.metadata.create_all)
     db = _database.SessionLocal()
@@ -31,8 +33,8 @@ async def get_db():
 
 async def create_user(user: _schemas.CreateUser, db: AsyncSession) -> _schemas.ShowUser:
     user = _models.User(**user.dict())
-    user.Password = Hash.bcrypt(user.Password)
-    user.Point = 0
+    user.password = Hash.bcrypt(user.password)
+    user.point = 0
     db.add(user)
     await db.commit()
     await db.refresh(user)
@@ -62,16 +64,16 @@ async def get_user(user_id: int, db: AsyncSession) -> _models.User:
     return user
 
 
-async def delete_user(user: _models.User, db: AsyncSession):
+async def delete_user(user: _models.User, db: AsyncSession) -> None:
     await db.delete(user)
     await db.commit()
 
 
 async def update_user(update_form: _schemas.UpdateForm, user: _models.User, db: AsyncSession) -> _schemas.ShowUser:
-    if not Hash.verify(user.Password, update_form.old_password):
+    if not Hash.verify(user.password, update_form.old_password):
         raise _fastapi.HTTPException(status_code=404, detail="Password incorrect")
     if update_form.new_password != "":
-        user.Password = Hash.bcrypt(update_form.new_password)
+        user.password = Hash.bcrypt(update_form.new_password)
 
     await db.commit()
     await db.refresh(user)
@@ -110,7 +112,7 @@ async def get_book(book_id: int, db: AsyncSession) -> _models.Book:
     return book
 
 
-async def delete_book(book: _models.Book, db: AsyncSession):
+async def delete_book(book: _models.Book, db: AsyncSession) -> None:
     await db.delete(book)
     await db.commit()
 
@@ -142,13 +144,52 @@ async def create_page(page: _schemas.CreatePage, db: AsyncSession) -> _schemas.S
     return page
 
 
-async def upload_image(filename: str, file: UploadFile = File(...)):
+async def upload_image(filename: str, file: UploadFile = File(...)) -> Response:
     url = f"http://{fs_base}/upload"
 
     files = {"image": (filename, file.file)}
     response = requests.post(url, files=files)
 
-    if response.status_code == 200:
-        return {"message": "File uploaded successfully."}
-    else:
-        return {"error": "Failed to upload file to server."}
+    return response
+
+
+async def create_reading_history(record: _schemas.CreateReadingHistory, db: AsyncSession) -> None:
+    record = _models.ReadingHistory(**record.dict())
+    db.add(record)
+    await db.commit()
+    await db.refresh(record)
+
+
+async def get_user_reading_history(user_id: int, db: AsyncSession) -> List[_schemas.ShowReadingHistory]:
+    # noinspection PyTypeChecker
+    q = select(_models.ReadingHistory).where(_models.ReadingHistory.user_id == user_id)
+    result = await db.execute(q)
+    records = [_schemas.ShowReadingHistory.from_orm(row) for row in result.scalars()]
+    return records
+
+
+async def get_users_read_count(db: AsyncSession):
+    result = await db.execute(text(
+        fr'SELECT u.id AS user_id, u.username, COUNT(rh.book_id) AS books_read '
+        fr'FROM users u '
+        fr'LEFT JOIN reading_history rh ON u.id = rh.user_id '
+        fr'GROUP BY u.id, u.username '
+        fr'ORDER BY COUNT(rh.book_id) DESC;'
+    ))
+
+    users_books_read = [{"user_id": row.user_id, "username": row.username, "read_count": row.books_read} for row in
+                        result]
+    return users_books_read
+
+
+async def get_books_read_count(db: AsyncSession):
+    result = await db.execute(text(
+        fr'SELECT b.id AS book_id, b.title, COUNT(rh.user_id) AS users_read '
+        fr'FROM books b '
+        fr'LEFT JOIN reading_history rh ON b.id = rh.book_id '
+        fr'GROUP BY b.id, b.title '
+        fr'ORDER BY COUNT(rh.user_id) DESC;'
+    ))
+
+    books_users_read = [{"book_id": row.book_id, "title": row.title, "read_count": row.users_read} for row in result]
+    return books_users_read

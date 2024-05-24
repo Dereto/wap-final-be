@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import schemas as _schemas, services as _services
+from .. import oauth2 as _oauth2, schemas as _schemas, services as _services
 
 router = APIRouter(
     prefix="/book",
@@ -68,6 +68,19 @@ async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(
 
 @router.get("/{book_id}/pages", response_model=List[_schemas.ShowPage])
 async def get_book_pages(book_id: int,
-                        db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+                         current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
+                         db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    if current_user is None:
+        raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
     pages = await _services.get_book_pages(book_id=book_id, db=db)
+    await _services.create_reading_history(
+        record=_schemas.CreateReadingHistory(book_id=book_id, user_id=current_user.id), db=db)
+
     return pages
+
+
+@router.get("/read-count/", response_model=List[_schemas.BookReadCount])
+async def get_books_read_count(db: AsyncSession = _fastapi.Depends(_services.get_db)):
+    datas = await _services.get_books_read_count(db=db)
+    read_counts = [_schemas.BookReadCount.from_orm(data) for data in datas]
+    return read_counts
