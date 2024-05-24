@@ -77,3 +77,10 @@ async def get_book_pages(book_id: int,
         record=_schemas.CreateReadingHistory(book_id=book_id, user_id=current_user.id), db=db)
 
     return pages
+
+
+@router.get("/read-count/", response_model=List[_schemas.BookReadCount])
+async def get_books_read_count(db: AsyncSession = _fastapi.Depends(_services.get_db)):
+    datas = await _services.get_books_read_count(db=db)
+    read_counts = [_schemas.BookReadCount.from_orm(data) for data in datas]
+    return read_counts

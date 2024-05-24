@@ -66,3 +66,22 @@ async def update_user(form: _schemas.UpdateForm,
         raise _fastapi.HTTPException(status_code=404, detail="User does not exist")
     await _services.update_user(update_form=form, user=user, db=db)
     return "Successfully updated the user"
+
+
+@router.get("/{user_id}/history", response_model=List[_schemas.ReadingHistory], response_model_exclude_unset=True)
+async def get_user_reading_history(user_id: int,
+                                   current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
+                                   db: AsyncSession = _fastapi.Depends(_services.get_db)):
+    if current_user is None:
+        raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
+    if current_user.id != user_id:
+        raise _fastapi.HTTPException(status_code=403, detail="forbidden")
+    records = await _services.get_user_reading_history(user_id=user_id, db=db)
+    return records
+
+
+@router.get("/read-count/", response_model=List[_schemas.UserReadCount])
+async def get_users_read_count(db: AsyncSession = _fastapi.Depends(_services.get_db)):
+    datas = await _services.get_users_read_count(db=db)
+    read_counts = [_schemas.UserReadCount.from_orm(data) for data in datas]
+    return read_counts

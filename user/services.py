@@ -4,6 +4,7 @@ import requests
 import fastapi as _fastapi
 import sqlalchemy as _sql
 from fastapi import UploadFile, File
+from sqlalchemy import text
 from sqlalchemy.sql import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from requests import Response
@@ -157,3 +158,38 @@ async def create_reading_history(record: _schemas.CreateReadingHistory, db: Asyn
     db.add(record)
     await db.commit()
     await db.refresh(record)
+
+
+async def get_user_reading_history(user_id: int, db: AsyncSession) -> List[_schemas.ShowReadingHistory]:
+    # noinspection PyTypeChecker
+    q = select(_models.ReadingHistory).where(_models.ReadingHistory.user_id == user_id)
+    result = await db.execute(q)
+    records = [_schemas.ShowReadingHistory.from_orm(row) for row in result.scalars()]
+    return records
+
+
+async def get_users_read_count(db: AsyncSession):
+    result = await db.execute(text(
+        fr'SELECT u.id AS user_id, u.username, COUNT(rh.book_id) AS books_read '
+        fr'FROM users u '
+        fr'LEFT JOIN reading_history rh ON u.id = rh.user_id '
+        fr'GROUP BY u.id, u.username '
+        fr'ORDER BY COUNT(rh.book_id) DESC;'
+    ))
+
+    users_books_read = [{"user_id": row.user_id, "username": row.username, "read_count": row.books_read} for row in
+                        result]
+    return users_books_read
+
+
+async def get_books_read_count(db: AsyncSession):
+    result = await db.execute(text(
+        fr'SELECT b.id AS book_id, b.title, COUNT(rh.user_id) AS users_read '
+        fr'FROM books b '
+        fr'LEFT JOIN reading_history rh ON b.id = rh.book_id '
+        fr'GROUP BY b.id, b.title '
+        fr'ORDER BY COUNT(rh.user_id) DESC;'
+    ))
+
+    books_users_read = [{"book_id": row.book_id, "title": row.title, "read_count": row.users_read} for row in result]
+    return books_users_read

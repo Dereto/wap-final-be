@@ -114,3 +114,25 @@ class CreateReadingHistory(_BaseReadingHistory):
 class ShowReadingHistory(_BaseReadingHistory):
     id: int
     opened_at: datetime
+
+
+class UserReadCount(_BaseModel):
+    user_id: int
+    username: str
+    read_count: int
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
+        orm_mode = True
+
+
+class BookReadCount(_BaseModel):
+    book_id: int
+    title: str
+    read_count: int
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
+        orm_mode = True
