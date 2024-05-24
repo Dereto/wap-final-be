@@ -1,3 +1,5 @@
+import datetime
+
 import sqlalchemy as _sql
 from sqlalchemy import ForeignKey
 
@@ -11,6 +13,9 @@ class User(_database.Base):
     username = _sql.Column(_sql.String, unique=True, nullable=False)
     password = _sql.Column(_sql.String, nullable=False)
     point = _sql.Column(_sql.Integer, nullable=False, default=0)
+    gender = _sql.Column(_sql.String, nullable=False, default="Other")
+    birthday = _sql.Column(_sql.DATE)
+    self_description = _sql.Column(_sql.String)
 
 
 class Book(_database.Base):
@@ -33,3 +38,14 @@ class Page(_database.Base):
     __table_args__ = (
         _sql.UniqueConstraint('book_id', 'page_number'),
     )
+
+
+class ReadingHistory(_database.Base):
+    __tablename__ = "reading_history"
+    id = _sql.Column(_sql.Integer, primary_key=True, index=True)
+    book_id = _sql.Column(_sql.Integer, ForeignKey("books.id"), nullable=False)
+    user_id = _sql.Column(_sql.Integer, ForeignKey("users.id"), nullable=False)
+    opened_at = _sql.Column(_sql.TIMESTAMP, nullable=False, default=datetime.datetime.utcnow)
+
+    book = _sql.orm.relationship("Book")
+    user = _sql.orm.relationship("User")

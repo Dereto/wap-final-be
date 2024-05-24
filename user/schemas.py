@@ -1,4 +1,5 @@
-from pydantic import BaseModel as _BaseModel, UUID4, AnyUrl
+from pydantic import BaseModel as _BaseModel, UUID4
+from datetime import date, datetime
 from typing import Optional
 
 
@@ -13,20 +14,26 @@ class _BaseUser(_BaseModel):
 
 
 class User(_BaseUser):
-    point: Optional[int] = None
+    point: int
     id: int
+    gender: str
+    birthday: Optional[date] = None
+    self_description: Optional[str] = None
 
 
 class CreateUser(_BaseUser):
+    gender: Optional[str] = None
+    birthday: Optional[date] = None
+    self_description: Optional[str] = None
     pass
 
 
 class ShowUser(_BaseUser):
+    point: int
     id: int
-    point: Optional[int] = None
-
-    class Config:
-        orm_mode = True
+    gender: str
+    birthday: Optional[date] = None
+    self_description: Optional[str] = None
 
 
 class UpdateForm(_BaseModel):
@@ -83,3 +90,27 @@ class CreatePage(_BasePage):
 
 class ShowPage(_BasePage):
     uuid: UUID4
+
+
+class _BaseReadingHistory(_BaseModel):
+    book_id: int
+    user_id: int
+
+    class Config:
+        arbitrary_types_allowed = True
+        from_attributes = True
+        orm_mode = True
+
+
+class ReadingHistory(_BaseReadingHistory):
+    id: int
+    opened_at: datetime
+
+
+class CreateReadingHistory(_BaseReadingHistory):
+    pass
+
+
+class ShowReadingHistory(_BaseReadingHistory):
+    id: int
+    opened_at: datetime
