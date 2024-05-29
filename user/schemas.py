@@ -74,6 +74,7 @@ class ShowBook(_BaseBook):
 
 
 class CreateBook(_BaseBook):
+    total_pages: int
     pass
 
 
