@@ -8,7 +8,7 @@ from user.routers import authentication as _authentication, users as _users, boo
 if TYPE_CHECKING:
     pass
 
-app = _fastapi.FastAPI()
+app = _fastapi.FastAPI(openapi_url='/api/openapi.json')
 
 origins = ["*"]
 
