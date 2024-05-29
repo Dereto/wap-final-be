@@ -23,6 +23,8 @@ class Book(_database.Base):
     id = _sql.Column(_sql.Integer, primary_key=True, index=True)
     title = _sql.Column(_sql.String)
     author = _sql.Column(_sql.String)
+    publisher = _sql.Column(_sql.String)
+    isbn = _sql.Column(_sql.String)
     description = _sql.Column(_sql.TEXT)
     total_pages = _sql.Column(_sql.Integer, nullable=False)
 

@@ -58,6 +58,8 @@ class _BaseBook(_BaseModel):
     title: Optional[str] = None
     author: Optional[str] = None
     description: Optional[str] = None
+    publisher: Optional[str] = None
+    isbn: Optional[str] = None
 
     class Config:
         arbitrary_types_allowed = True
