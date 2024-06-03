@@ -4,6 +4,7 @@ import fastapi as _fastapi
 import uuid
 from fastapi import APIRouter, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import UUID4
 
 from .. import oauth2 as _oauth2, schemas as _schemas, services as _services
 
@@ -55,15 +56,27 @@ async def update_book(update_form: _schemas.UpdateBook,
     return "Successfully updated the book"
 
 
-@router.post("/{book_id}/upload", response_model=_schemas.ShowPage)
+@router.post("/{book_id}/upload", response_model=UUID4)
 async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(...),
                         db: AsyncSession = _fastapi.Depends(_services.get_db), ):
-    page_uuid = uuid.uuid4()
-    filename = f"{page_uuid}.jpg"
-    response = await _services.upload_image(filename=filename, file=file)  # do some check later
-    page = _schemas.CreatePage(page_number=page_number, book_id=book_id, uuid=page_uuid)
-    page = await _services.create_page(page, db=db)
-    return page
+    book = await _services.get_book(book_id=book_id)
+    if book is None:
+        raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
+    if page_number == 0:
+        page_uuid = book.cover
+        filename = f"{page_uuid}.jpg"
+        response = await _services.upload_image(filename=filename, file=file)  # do some check later
+        return page_uuid
+    else:
+        if page_number > book.total_pages:
+            raise _fastapi.HTTPException(status_code=400,
+                                         detail=f"Page number is out of range. It must be between 1 and {book.total_pages}.")
+        page_uuid = uuid.uuid4()
+        filename = f"{page_uuid}.jpg"
+        response = await _services.upload_image(filename=filename, file=file)  # do some check later
+        page = _schemas.CreatePage(page_number=page_number, book_id=book_id, uuid=page_uuid)
+        page = await _services.create_page(page, db=db)
+        return page_uuid
 
 
 @router.get("/{book_id}/pages", response_model=List[_schemas.ShowPage])
