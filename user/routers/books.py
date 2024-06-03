@@ -59,7 +59,7 @@ async def update_book(update_form: _schemas.UpdateBook,
 @router.post("/{book_id}/upload", response_model=UUID4)
 async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(...),
                         db: AsyncSession = _fastapi.Depends(_services.get_db), ):
-    book = await _services.get_book(book_id=book_id)
+    book = await _services.get_book(book_id=book_id, db=db)
     if book is None:
         raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
     if page_number == 0:
