@@ -83,9 +83,9 @@ async def delete_user(user: _models.User, db: AsyncSession) -> None:
 
 
 async def update_user(update_form: _schemas.UpdateForm, user: _models.User, db: AsyncSession) -> _schemas.ShowUser:
-    if not Hash.verify(user.password, update_form.old_password):
-        raise _fastapi.HTTPException(status_code=404, detail="Password incorrect")
     if update_form.new_password is not None and update_form.new_password != "":
+        if not Hash.verify(user.password, update_form.old_password):
+            raise _fastapi.HTTPException(status_code=401, detail="Password incorrect")
         user.password = Hash.bcrypt(update_form.new_password)
     if update_form.username is not None:
         user.username = update_form.username
