@@ -47,7 +47,6 @@ async def delete_user(user_id: int,
                       db: AsyncSession = _fastapi.Depends(_services.get_db), ):
     if current_user is None:
         raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
-    # admin id = 1
     if current_user.id != user_id and current_user.id != 1:
         raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     user = await _services.get_user(user_id=user_id, db=db)

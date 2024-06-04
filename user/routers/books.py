@@ -17,7 +17,10 @@ router = APIRouter(
 
 @router.post("/", response_model=_schemas.ShowBook)
 async def create_book(book: _schemas.CreateBook,
+                      current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
                       db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    if current_user is None or current_user.id != 1:
+        raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     return await _services.create_book(book=book, db=db)
 
 
@@ -36,7 +39,10 @@ async def get_book(book_id: int,
 
 @router.delete("/{book_id}")
 async def delete_book(book_id: int,
+                      current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
                       db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    if current_user is None or current_user.id != 1:
+        raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     book = await _services.get_book(book_id=book_id, db=db)
     if book is None:
         raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
@@ -48,7 +54,10 @@ async def delete_book(book_id: int,
 @router.patch("/{book_id}")
 async def update_book(update_form: _schemas.UpdateBook,
                       book_id: int,
+                      current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
                       db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    if current_user is None or current_user.id != 1:
+        raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     book = await _services.get_book(book_id=book_id, db=db)
     if book is None:
         raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
@@ -58,7 +67,10 @@ async def update_book(update_form: _schemas.UpdateBook,
 
 @router.post("/{book_id}/upload", response_model=UUID4)
 async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(...),
+                        current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
                         db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    if current_user is None or current_user.id != 1:
+        raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     book = await _services.get_book(book_id=book_id, db=db)
     if book is None:
         raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
@@ -83,11 +95,10 @@ async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(
 async def get_book_pages(book_id: int,
                          current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
                          db: AsyncSession = _fastapi.Depends(_services.get_db), ):
-    if current_user is None:
-        raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
     pages = await _services.get_book_pages(book_id=book_id, db=db)
-    await _services.create_reading_history(
-        record=_schemas.CreateReadingHistory(book_id=book_id, user_id=current_user.id), db=db)
+    if current_user is not None:
+        await _services.create_reading_history(
+            record=_schemas.CreateReadingHistory(book_id=book_id, user_id=current_user.id), db=db)
 
     return pages
 
