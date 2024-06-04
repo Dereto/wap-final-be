@@ -179,14 +179,6 @@ async def get_book_pages(book_id: int, db: AsyncSession) -> List[_schemas.ShowPa
     return pages
 
 
-async def get_book_page(book_id: int, page_number: int, db: AsyncSession) -> _models.Page:
-    # noinspection PyTypeChecker
-    q = select(_models.Page).filter(_models.Page.book_id == book_id).filter(_models.Page.page_number == page_number)
-    result = await db.execute(q)
-    page = result.scalars().first()
-    return page
-
-
 async def create_page(page: _schemas.CreatePage, db: AsyncSession) -> _schemas.ShowPage:
     page = _models.Page(**page.dict())
     try:

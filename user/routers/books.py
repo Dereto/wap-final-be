@@ -62,24 +62,20 @@ async def add_book_page(book_id: int, page_number: int, file: UploadFile = File(
     book = await _services.get_book(book_id=book_id, db=db)
     if book is None:
         raise _fastapi.HTTPException(status_code=404, detail="Book does not exist")
-    page = await _services.get_book_page(book_id=book_id, page_number=page_number, db=db)
-    if page is None:
+    if page_number == 0:
+        page_uuid = book.cover
+        filename = f"{page_uuid}.jpg"
+        response = await _services.upload_image(filename=filename, file=file)  # do some check later
+        return page_uuid
+    else:
         if page_number > book.total_pages:
             raise _fastapi.HTTPException(status_code=400,
-                                         detail=f"Page number is out of range. It must be between 0 and {book.total_pages}.")
+                                         detail=f"Page number is out of range. It must be between 1 and {book.total_pages}.")
         page_uuid = uuid.uuid4()
         filename = f"{page_uuid}.jpg"
         response = await _services.upload_image(filename=filename, file=file)  # do some check later
         page = _schemas.CreatePage(page_number=page_number, book_id=book_id, uuid=page_uuid)
-        await _services.create_page(page, db=db)
-        if page_number == 0:
-            update_form = _schemas.UpdateBook(book_id=book_id, cover=page_uuid)
-            await _services.update_book(update_form=update_form, book=book, db=db)
-        return page_uuid
-    else:
-        page_uuid = page.uuid
-        filename = f"{page_uuid}.jpg"
-        response = await _services.upload_image(filename=filename, file=file)  # do some check later
+        page = await _services.create_page(page, db=db)
         return page_uuid
 
 
