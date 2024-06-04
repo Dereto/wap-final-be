@@ -29,7 +29,7 @@ class Book(_database.Base):
     description = _sql.Column(_sql.TEXT)
     total_pages = _sql.Column(_sql.Integer, nullable=False)
 
-    pages = _sql.orm.relationship("Page", foreign_keys="[Page.book_id]")
+    book = _sql.orm.relationship("Page")
 
 
 class Page(_database.Base):
@@ -38,7 +38,7 @@ class Page(_database.Base):
     book_id = _sql.Column(_sql.Integer, ForeignKey("books.id"), nullable=False)
     page_number = _sql.Column(_sql.Integer, nullable=False)
 
-    book = _sql.orm.relationship("Book", foreign_keys="[Page.book_id]")
+    book = _sql.orm.relationship("Book")
 
     __table_args__ = (
         _sql.UniqueConstraint('book_id', 'page_number'),
