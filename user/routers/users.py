@@ -43,7 +43,13 @@ async def get_user(user_id: int,
 
 @router.delete("/{user_id}")
 async def delete_user(user_id: int,
+                      current_user: _schemas.TokenData = _fastapi.Depends(_oauth2.get_current_user),
                       db: AsyncSession = _fastapi.Depends(_services.get_db), ):
+    if current_user is None:
+        raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
+    # admin id = 1
+    if current_user.id != user_id and current_user.id != 1:
+        raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     user = await _services.get_user(user_id=user_id, db=db)
     if user is None:
         raise _fastapi.HTTPException(status_code=404, detail="User does not exist")
@@ -59,7 +65,7 @@ async def update_user(form: _schemas.UpdateForm,
                       db: AsyncSession = _fastapi.Depends(_services.get_db), ):
     if current_user is None:
         raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
-    if current_user.id != user_id:
+    if current_user.id != user_id and current_user.id != 1:
         raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     user = await _services.get_user(user_id=user_id, db=db)
     if user is None:
@@ -74,7 +80,7 @@ async def get_user_reading_history(user_id: int,
                                    db: AsyncSession = _fastapi.Depends(_services.get_db)):
     if current_user is None:
         raise _fastapi.HTTPException(status_code=401, detail="unauthorized")
-    if current_user.id != user_id:
+    if current_user.id != user_id and current_user.id != 1:
         raise _fastapi.HTTPException(status_code=403, detail="forbidden")
     records = await _services.get_user_reading_history(user_id=user_id, db=db)
     return records
