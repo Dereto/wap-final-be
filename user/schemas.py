@@ -70,7 +70,7 @@ class _BaseBook(_BaseModel):
 class ShowBook(_BaseBook):
     id: int
     total_pages: int
-    cover: Optional[UUID4] = None
+    cover: UUID4
 
 
 class CreateBook(_BaseBook):
@@ -79,7 +79,6 @@ class CreateBook(_BaseBook):
 
 
 class UpdateBook(_BaseBook):
-    cover: Optional[UUID4] = None
     pass
 
 

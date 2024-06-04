@@ -22,14 +22,12 @@ class Book(_database.Base):
     __tablename__ = "books"
     id = _sql.Column(_sql.Integer, primary_key=True, index=True)
     title = _sql.Column(_sql.String)
-    cover = _sql.Column(_sql.UUID(as_uuid=True), ForeignKey("pages.uuid"))
+    cover = _sql.Column(_sql.UUID(as_uuid=True), default=uuid.uuid4)
     author = _sql.Column(_sql.String)
     publisher = _sql.Column(_sql.String)
     isbn = _sql.Column(_sql.String)
     description = _sql.Column(_sql.TEXT)
     total_pages = _sql.Column(_sql.Integer, nullable=False)
-
-    book = _sql.orm.relationship("Page")
 
 
 class Page(_database.Base):
